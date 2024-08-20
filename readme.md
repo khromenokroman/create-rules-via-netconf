@@ -14,7 +14,7 @@ You must have Python3 installed on your machine.
 
 You also need the following Python packages which can be installed using pip:
 ````
-pip install requests
+pip install -r requirements.txt
 ````
 
 ### Usage:
