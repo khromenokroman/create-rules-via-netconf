@@ -176,6 +176,67 @@ def create_trex_acl(user_pass: Tuple[str, str], headers: Dict[str, str], context
     else:
         print(f"Result for add subnets: {response.status_code}\n")
 
+def create_trex_sec(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
+                    port: str) -> None:
+
+    """
+    Creates a security policy ('sec') for a given context with prepopulated 'Trex' rules.
+
+    This function configures a  security policy on the controlled firewall with the default
+    action of accepting packets coming from specified 'Trex' source networks.
+
+    Parameters:
+    user_pass (Tuple[str, str]): a tuple that contains the username and password for authentication;
+    headers (Dict[str, str]): a dictionary with HTTP headers for the request;
+    context (str): the context in which it is necessary to create the SEC entries;
+    size (int): size of the SEC entries list;
+    server (str): The IP address of the RESTCONF server;
+    port (str): The listening port of the RESTCONF server;
+
+    Returns:
+    None. The function sends a PUT request to the server with the required sec policy structure
+    and displays the HTTP response code and message in the console.
+
+    Note:
+    The hardcoded 'Trex' rules are made to facilitate the developer team avoiding manual rule creation.
+    """
+
+    print(f"Generate SEC...")
+    sec_entries_list = []
+
+    # это для того что бы руками не создавать правила для тирекса (только для команды разработки)
+    sec_entry = {
+        "sequence-id": size + 5,
+        "enabled": "true",
+        "actions": {
+            "config": {
+                "forwarding-action": "accept"
+            }
+        },
+        "src-address": [
+            "trex_net"
+        ]
+    }
+    sec_entries_list.append(sec_entry)
+
+    access_policy = {
+        "clixon-ngfw:security-policies-ipv4": {
+            "security-policy": {
+                "type": "sec_ipv4",
+                "sec-entries": {
+                    "sec-entry": sec_entries_list
+                }
+            }
+        }
+    }
+
+    response = requests.put(
+        f'http://{server}:{port}/restconf/data/clixon-ngfw:contexts/context={context}/firewall/security-policies-ipv4',
+        headers=headers, data=json.dumps(access_policy), auth=user_pass)
+    if response.text:
+        print(f"Result for add SEC policy: {response.status_code} {response.text}\n")
+    else:
+        print(f"Result for add SEC policy: {response.status_code}\n")
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Script for generating Access Control Lists (ACLs)')
@@ -201,3 +262,4 @@ if __name__ == '__main__':
     delete_node_firewall(user_pass, headers, args.context, args.server, args.port)
     create_trex_subnets(user_pass, headers, args.context, args.size, args.server, args.port)
     create_trex_acl(user_pass, headers, args.context, args.size, args.server, args.port)
+    create_trex_sec(user_pass, headers, args.context, args.size, args.server, args.port)
