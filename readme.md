@@ -13,7 +13,7 @@ create a security policy with prepopulated 'User' rules.
 You must have Python3 installed on your machine.
 
 You also need the following Python packages which can be installed using pip:
-````
+````bash
 pip install -r requirements.txt
 ````
 
@@ -21,8 +21,8 @@ pip install -r requirements.txt
 
 To run the script, you need to use a terminal/cmd. Navigate to the directory 
 containing the script. Now you can run the script using Python.
-````
-$ create_rules.py -s [num_rules] -c [context_name] -S [server_ip] -p [server_port]
+````bash
+$ create_rules.py -s [num_rules] -c [context_name] -S [server_ip] -p [server_port] -f [file_with_subnets]
 ````
 ### Options:
 
@@ -34,6 +34,16 @@ that the rules are interacting with. This argument is required.
 server. This argument is required.
 * -p [server_port] or --port [server_port]: The listening port of the 
 RESTCONF server. This argument is required.
+* -f [file_with_subnets] or --file Path to the file with subnets
+
+**File must format:**
+````bash
+$ cat sub.txt 
+10.0.0.0/24
+10.0.1.0/24
+10.0.2.0/24
+10.0.3.0/24
+````
 
 ### Script content:
 

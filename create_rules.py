@@ -41,6 +41,7 @@ def read_file(file_path: str) -> list:
     try:
         with open(file_path, 'r') as file:
             str_list = [line.strip() for line in file if is_valid_ipv4_cidr(line.strip())]
+            print(f'Get user subnets: {str_list}')
             return str_list
     except Exception as ex:
         print(f"Error: File {file_path}: {ex}")
@@ -233,7 +234,6 @@ def create_sec(user_pass: Tuple[str, str], headers: Dict[str, str], context: str
     print(f"Generate SEC...")
     sec_entries_list = []
 
-    # это для того что бы руками не создавать правила для тирекса (только для команды разработки)
     sec_entry = {
         "sequence-id": size + 5,
         "enabled": "true",
@@ -243,7 +243,7 @@ def create_sec(user_pass: Tuple[str, str], headers: Dict[str, str], context: str
             }
         },
         "src-address": [
-            "trex_net"
+            "user_subnets"
         ]
     }
     sec_entries_list.append(sec_entry)
