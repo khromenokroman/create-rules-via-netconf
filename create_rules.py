@@ -110,6 +110,7 @@ def create_subnets(user_pass: Tuple[str, str], headers: Dict[str, str], context:
             }
         })
 
+    print(f"Add user subnets...")
     subnet_list = read_file(args.file)
     address_groups.append({
         "group-name": "user_subnets",
