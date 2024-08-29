@@ -1,11 +1,50 @@
 #!/usr/bin/python3
+import sys
+
 import requests
 import json
 import random
 import argparse
+import ipaddress
 from typing import Dict
 from typing import Tuple
 
+def is_valid_ipv4_cidr(ip_with_cidr: str) -> bool:
+    """
+    Verifies if a string is a valid IPv4 subnet in CIDR notation (x.x.x.x/y).
+
+    Parameters:
+    ip_with_cidr (str): The string potentially representing an IPv4 subnet.
+
+    Returns:
+    bool: True if the string is a valid IPv4 subnet in CIDR notation, False otherwise.
+    """
+
+    # 'ipaddress.IPv4Network' function is used to create an IPv4 network object.
+    # If the provided string is not a valid IPv4 subnet, a ValueError exception is raised.
+    try:
+        ipaddress.IPv4Network(ip_with_cidr)
+        return True
+    except ValueError:
+        return False
+
+def read_file(file_path: str) -> list:
+    """
+    Reads a list of strings from a .txt file, one string per line.
+
+    Parameters:
+    file_path (str): The path to the file to be read;
+
+    Returns:
+    str_list (list): A list of strings.
+    """
+    try:
+        with open(file_path, 'r') as file:
+            str_list = [line.strip() for line in file if is_valid_ipv4_cidr(line.strip())]
+            return str_list
+    except Exception as ex:
+        print(f"Error: File {file_path}: {ex}")
+        sys.exit(-1)
 
 def delete_node_firewall(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, server: str,
                    port: str) -> None:
@@ -70,19 +109,13 @@ def create_trex_subnets(user_pass: Tuple[str, str], headers: Dict[str, str], con
             }
         })
 
-    # это для того что бы руками не создавать правила для тирекса (только для команды разработки)
+    subnet_list = read_file(args.file)
     address_groups.append({
         "group-name": "trex_net",
         "address-types": {
             "ip-subnets": [
-                "10.1.0.0/16",
-                "10.2.0.0/16",
-                "10.3.0.0/16",
-                "10.4.0.0/16",
-                "10.5.0.0/16",
-                "10.6.0.0/16",
-                "10.7.0.0/16",
-                "10.8.0.0/16"
+                subnet_list
+
             ]
         }
     })
@@ -248,9 +281,11 @@ def parse_arguments():
                         help='IP address restconf server. This argument is required.')
     parser.add_argument('-p', '--port', type=str, required=True,
                         help='Port restconf server. This argument is required.')
+    parser.add_argument('-f', '--file', type=str, required=True,
+                        help='Path to the file with subnets. This argument is required.')
     return parser.parse_args()
 
-
+# Example: create_rules.py -s [num_rules] -c [context_name] -S [server_ip] -p [server_port] -f [file_with_subnets]
 if __name__ == '__main__':
     args = parse_arguments()
     user_pass = ('sysadmin',
