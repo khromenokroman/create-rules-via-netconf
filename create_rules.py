@@ -71,7 +71,7 @@ def delete_node_firewall(user_pass: Tuple[str, str], headers: Dict[str, str], co
         print(f"Result for delete node firewall: {response.status_code}\n")
 
 
-def create_trex_subnets(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
+def create_subnets(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
                         port: str) -> None:
     """
     Creates groups of randomly generated subnets for a given context.
@@ -111,11 +111,10 @@ def create_trex_subnets(user_pass: Tuple[str, str], headers: Dict[str, str], con
 
     subnet_list = read_file(args.file)
     address_groups.append({
-        "group-name": "trex_net",
+        "group-name": "user_subnets",
         "address-types": {
             "ip-subnets": [
                 subnet_list
-
             ]
         }
     })
@@ -135,7 +134,7 @@ def create_trex_subnets(user_pass: Tuple[str, str], headers: Dict[str, str], con
         print(f"Result for add subnets: {response.status_code}\n")
 
 
-def create_trex_acl(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
+def create_acl(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
                     port: str) -> None:
     """
     Creates the specified number of Access Control List (ACL) entries with
@@ -172,7 +171,6 @@ def create_trex_acl(user_pass: Tuple[str, str], headers: Dict[str, str], context
         }
         acl_entries_list.append(acl_entry)
 
-    # это для того что бы руками не создавать правила для тирекса (только для команды разработки)
     acl_entry = {
         "sequence-id": size + 5,
         "actions": {
@@ -181,7 +179,7 @@ def create_trex_acl(user_pass: Tuple[str, str], headers: Dict[str, str], context
             }
         },
         "src-address": [
-            "trex_net"
+            "user_subnets"
         ]
     }
     acl_entries_list.append(acl_entry)
@@ -209,14 +207,14 @@ def create_trex_acl(user_pass: Tuple[str, str], headers: Dict[str, str], context
     else:
         print(f"Result for add subnets: {response.status_code}\n")
 
-def create_trex_sec(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
+def create_sec(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
                     port: str) -> None:
 
     """
-    Creates a security policy ('sec') for a given context with prepopulated 'Trex' rules.
+    Creates a security policy ('sec') for a given context with prepopulated 'User' rules.
 
     This function configures a  security policy on the controlled firewall with the default
-    action of accepting packets coming from specified 'Trex' source networks.
+    action of accepting packets coming from specified 'User' source networks.
 
     Parameters:
     user_pass (Tuple[str, str]): a tuple that contains the username and password for authentication;
@@ -230,8 +228,6 @@ def create_trex_sec(user_pass: Tuple[str, str], headers: Dict[str, str], context
     None. The function sends a PUT request to the server with the required sec policy structure
     and displays the HTTP response code and message in the console.
 
-    Note:
-    The hardcoded 'Trex' rules are made to facilitate the developer team avoiding manual rule creation.
     """
 
     print(f"Generate SEC...")
@@ -295,6 +291,6 @@ if __name__ == '__main__':
     }
 
     delete_node_firewall(user_pass, headers, args.context, args.server, args.port)
-    create_trex_subnets(user_pass, headers, args.context, args.size, args.server, args.port)
-    create_trex_acl(user_pass, headers, args.context, args.size, args.server, args.port)
-    create_trex_sec(user_pass, headers, args.context, args.size, args.server, args.port)
+    create_subnets(user_pass, headers, args.context, args.size, args.server, args.port)
+    create_acl(user_pass, headers, args.context, args.size, args.server, args.port)
+    create_sec(user_pass, headers, args.context, args.size, args.server, args.port)

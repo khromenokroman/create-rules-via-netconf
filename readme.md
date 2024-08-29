@@ -6,7 +6,7 @@ for a firewall on a given context.
 It is equipped with the functionality to delete all firewall nodes, to 
 create random subnets with groups and to create ACL entries with an 
 accepting action which are added to access policy. Moreover, it can 
-create a security policy with prepopulated 'Trex' rules.
+create a security policy with prepopulated 'User' rules.
 
 ### Getting started
 
@@ -39,9 +39,9 @@ RESTCONF server. This argument is required.
 
 **The script includes several functions:**
 * delete_node_firewall: this function deletes all nodes of the firewall.
-* create_trex_subnets: this function creates randomly generated subnets for a given context.
-* create_trex_acl: this function creates ACL entries with an accepting action for a given context.
-* create_trex_sec: this function creates a security policy with prepopulated 'Trex' rules for a given context.
+* create_subnets: this function creates randomly generated subnets for a given context.
+* create_acl: this function creates ACL entries with an accepting action for a given context.
+* create_sec: this function creates a security policy with prepopulated 'User' rules for a given context.
 
 ### Disclaimer
 
