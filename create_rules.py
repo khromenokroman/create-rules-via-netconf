@@ -9,6 +9,7 @@ import ipaddress
 from typing import Dict
 from typing import Tuple
 
+
 def is_valid_ipv4_cidr(ip_with_cidr: str) -> bool:
     """
     Verifies if a string is a valid IPv4 subnet in CIDR notation (x.x.x.x/y).
@@ -27,6 +28,7 @@ def is_valid_ipv4_cidr(ip_with_cidr: str) -> bool:
         return True
     except ValueError:
         return False
+
 
 def read_file(file_path: str) -> list:
     """
@@ -47,8 +49,9 @@ def read_file(file_path: str) -> list:
         print(f"Error: File {file_path}: {ex}")
         sys.exit(-1)
 
+
 def delete_node_firewall(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, server: str,
-                   port: str) -> None:
+                         port: str) -> None:
     """
     Function for deleting all node firewall.
 
@@ -73,7 +76,7 @@ def delete_node_firewall(user_pass: Tuple[str, str], headers: Dict[str, str], co
 
 
 def create_subnets(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
-                        port: str) -> None:
+                   port: str) -> None:
     """
     Creates groups of randomly generated subnets for a given context.
 
@@ -90,25 +93,32 @@ def create_subnets(user_pass: Tuple[str, str], headers: Dict[str, str], context:
     """
 
     print(f"Generate subnets...")
+    generated_ips = set()
     address_groups = []
+    subnets = []
 
     for i in range(1, size + 1):
-        octet_1 = random.randint(1, 255)
-        octet_2 = random.randint(1, 255)
-        octet_3 = random.randint(1, 255)
-        octet_4 = random.randint(1, 255)
+        while True:
+            octet_1 = random.randint(1, 255)
+            octet_2 = random.randint(1, 255)
+            octet_3 = random.randint(1, 255)
+            octet_4 = random.randint(1, 255)
 
-        ip = f"{octet_1}.{octet_2}.{octet_3}.{octet_4}"
-        name = f"group-{i}"
+            ip = f"{octet_1}.{octet_2}.{octet_3}.{octet_4}/32"
 
-        address_groups.append({
-            "group-name": name,
-            "address-types": {
-                "ip-subnets": [
-                    f"{ip}/32"
-                ]
-            }
-        })
+            if ip not in generated_ips:
+                generated_ips.add(ip)
+                subnets.append(ip)
+                break
+
+    address_groups.append({
+        "group-name": "random_group",
+        "address-types": {
+            "ip-subnets": [
+                subnets
+            ]
+        }
+    })
 
     print(f"Add user subnets...")
     subnet_list = read_file(args.file)
@@ -137,7 +147,7 @@ def create_subnets(user_pass: Tuple[str, str], headers: Dict[str, str], context:
 
 
 def create_acl(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
-                    port: str) -> None:
+               port: str) -> None:
     """
     Creates the specified number of Access Control List (ACL) entries with
     the accepting action and adds them to the access policy.
@@ -157,21 +167,20 @@ def create_acl(user_pass: Tuple[str, str], headers: Dict[str, str], context: str
     print(f"Generate ACL...")
     acl_entries_list = []
 
-    for i in range(1, size + 1):
-        name = f"group-{i}"
+    name = "random_group"
 
-        acl_entry = {
-            "sequence-id": i,
-            "actions": {
-                "config": {
-                    "forwarding-action": "accept"
-                }
-            },
-            "src-address": [
-                name
-            ]
-        }
-        acl_entries_list.append(acl_entry)
+    acl_entry = {
+        "sequence-id": size,
+        "actions": {
+            "config": {
+                "forwarding-action": "accept"
+            }
+        },
+        "src-address": [
+            name
+        ]
+    }
+    acl_entries_list.append(acl_entry)
 
     acl_entry = {
         "sequence-id": size + 5,
@@ -209,9 +218,9 @@ def create_acl(user_pass: Tuple[str, str], headers: Dict[str, str], context: str
     else:
         print(f"Result for add subnets: {response.status_code}\n")
 
-def create_sec(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
-                    port: str) -> None:
 
+def create_sec(user_pass: Tuple[str, str], headers: Dict[str, str], context: str, size: int, server: str,
+               port: str) -> None:
     """
     Creates a security policy ('sec') for a given context with prepopulated 'User' rules.
 
@@ -268,6 +277,7 @@ def create_sec(user_pass: Tuple[str, str], headers: Dict[str, str], context: str
     else:
         print(f"Result for add SEC policy: {response.status_code}\n")
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Script for generating Access Control Lists (ACLs)')
     parser.add_argument('-s', '--size', type=int, required=True,
@@ -281,6 +291,7 @@ def parse_arguments():
     parser.add_argument('-f', '--file', type=str, required=True,
                         help='Path to the file with subnets. This argument is required.')
     return parser.parse_args()
+
 
 # Example: create_rules.py -s [num_rules] -c [context_name] -S [server_ip] -p [server_port] -f [file_with_subnets]
 if __name__ == '__main__':
